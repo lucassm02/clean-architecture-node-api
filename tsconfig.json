@@ -4,6 +4,7 @@
     "module": "ES6",
     "target": "ES2019",
     "esModuleInterop": true,
-    "allowJs": true
+    "allowJs": true,
+    "moduleResolution": "Node"
   }
 }
