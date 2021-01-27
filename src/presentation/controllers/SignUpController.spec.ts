@@ -1,11 +1,8 @@
 import SignUpController from './SignUpController'
 import { EmailValidator } from '../protocols'
 import { InvalidParamError, ServerError, MissingParamError } from '../errors'
-
-interface SutType{
-  sut: SignUpController
-  emailValidatorStub: EmailValidator
-}
+import { AddAccount, AddAccountModel } from '../../domain/useCases/AddAccount'
+import { AccountModel } from '../../domain/models/Account'
 
 const makeEmailValidator = (): EmailValidator => {
   class EmailValidatorStub implements EmailValidator {
@@ -15,10 +12,25 @@ const makeEmailValidator = (): EmailValidator => {
   return new EmailValidatorStub()
 }
 
+const makeAddAccount = (): any => {
+  class AddAccountStub {
+    public add (account: AddAccountModel): Omit<AccountModel, 'password'> { return { id: 'unique_id', name: 'Lucas', email: 'lucastestgmail.com' } }
+  }
+
+  return new AddAccountStub()
+}
+
+interface SutType{
+  sut: SignUpController
+  emailValidatorStub: EmailValidator
+  addAccountStub: AddAccount
+}
+
 const makeSut = (): SutType => {
   const emailValidatorStub = makeEmailValidator()
-  const sut = new SignUpController(emailValidatorStub)
-  return { sut, emailValidatorStub }
+  const addAccountStub = makeAddAccount()
+  const sut = new SignUpController(emailValidatorStub, addAccountStub)
+  return { sut, emailValidatorStub, addAccountStub }
 }
 
 describe('SignUpController', () => {
@@ -162,5 +174,26 @@ describe('SignUpController', () => {
 
     expect(httpResponse.statusCode).toBe(400)
     expect(httpResponse.body).toEqual(new InvalidParamError('password_confirmation'))
+  })
+
+  test('Should call AddAccount with correct values', () => {
+    const { sut, addAccountStub } = makeSut()
+    const addSpy = jest.spyOn(addAccountStub, 'add')
+
+    const httpRequest = {
+      body: {
+        name: 'Lucas',
+        email: 'lucastestgmail.com',
+        password: '12345678',
+        password_confirmation: '12345678'
+      }
+    }
+
+    sut.handle(httpRequest)
+    expect(addSpy).toBeCalledWith({
+      name: 'Lucas',
+      email: 'lucastestgmail.com',
+      password: '12345678'
+    })
   })
 })
