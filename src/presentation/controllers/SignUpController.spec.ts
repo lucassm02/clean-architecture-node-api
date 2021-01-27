@@ -121,21 +121,23 @@ describe('SignUpController', () => {
     expect(httpResponse.body).toEqual(new InvalidParamError('email'))
   })
 
-  test('Should call EmailValidator with correct email', () => {
+  test('Should return 400 if password confirmation fails', () => {
     const { sut, emailValidatorStub: emailValidator } = makeSut()
-    const isValidSpy = jest.spyOn(emailValidator, 'isValid').mockReturnValueOnce(false)
+    jest.spyOn(emailValidator, 'isValid').mockReturnValueOnce(false)
 
     const httpRequest = {
       body: {
         name: 'Lucas',
-        email: 'lucastestgmail.com',
+        email: 'lucastest@gmail.com',
         password: '12345678',
-        password_confirmation: '12345678'
+        password_confirmation: '1234567'
       }
     }
 
-    sut.handle(httpRequest)
-    expect(isValidSpy).toBeCalledWith('lucastestgmail.com')
+    const httpResponse = sut.handle(httpRequest)
+
+    expect(httpResponse.statusCode).toBe(400)
+    expect(httpResponse.body).toEqual(new InvalidParamError('password_confirmation'))
   })
 
   test('Should return 500 if EmailValidator throws ', () => {
@@ -157,23 +159,23 @@ describe('SignUpController', () => {
     expect(httpResponse.body).toEqual(new ServerError())
   })
 
-  test('Should return 400 if password confirmation fails', () => {
-    const { sut, emailValidatorStub: emailValidator } = makeSut()
-    jest.spyOn(emailValidator, 'isValid').mockReturnValueOnce(false)
+  test('Should return 500 if AddAccount throws ', () => {
+    const { sut, addAccountStub } = makeSut()
+    jest.spyOn(addAccountStub, 'add').mockImplementationOnce(() => { throw new Error() })
 
     const httpRequest = {
       body: {
         name: 'Lucas',
-        email: 'lucastest@gmail.com',
+        email: 'lucastestgmail.com',
         password: '12345678',
-        password_confirmation: '1234567'
+        password_confirmation: '12345678'
       }
     }
 
     const httpResponse = sut.handle(httpRequest)
 
-    expect(httpResponse.statusCode).toBe(400)
-    expect(httpResponse.body).toEqual(new InvalidParamError('password_confirmation'))
+    expect(httpResponse.statusCode).toBe(500)
+    expect(httpResponse.body).toEqual(new ServerError())
   })
 
   test('Should call AddAccount with correct values', () => {
@@ -195,5 +197,22 @@ describe('SignUpController', () => {
       email: 'lucastestgmail.com',
       password: '12345678'
     })
+  })
+
+  test('Should call EmailValidator with correct email', () => {
+    const { sut, emailValidatorStub: emailValidator } = makeSut()
+    const isValidSpy = jest.spyOn(emailValidator, 'isValid').mockReturnValueOnce(false)
+
+    const httpRequest = {
+      body: {
+        name: 'Lucas',
+        email: 'lucastestgmail.com',
+        password: '12345678',
+        password_confirmation: '12345678'
+      }
+    }
+
+    sut.handle(httpRequest)
+    expect(isValidSpy).toBeCalledWith('lucastestgmail.com')
   })
 })
