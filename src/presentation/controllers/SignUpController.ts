@@ -8,7 +8,7 @@ import EmailValidator from '../protocols/EmailValidator'
 export default class SignUpController implements Controller {
   constructor (private readonly emailValidator: EmailValidator, private readonly addAccount: AddAccount) {}
 
-  public handle (httpRequest: HttpRequest): HttpResponse {
+  public async handle (httpRequest: HttpRequest): Promise<HttpResponse> {
     try {
       const requiredFields = ['name', 'email', 'password', 'password_confirmation']
 
@@ -29,7 +29,7 @@ export default class SignUpController implements Controller {
         return badRequest(new InvalidParamError('email'))
       }
 
-      const account = this.addAccount.add({ name, email, password })
+      const account = await this.addAccount.add({ name, email, password })
 
       return ok(account)
     } catch (error) {
