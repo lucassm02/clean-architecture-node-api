@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/camelcase */
 import { AddAccount } from '../../domain/useCases/AddAccount'
 import { InvalidParamError, MissingParamError } from '../errors'
-import { badRequest, serverError } from '../helpers/httpHelper'
+import { badRequest, ok, serverError } from '../helpers/httpHelper'
 import { Controller, HttpRequest, HttpResponse } from '../protocols'
 import EmailValidator from '../protocols/EmailValidator'
 
@@ -29,7 +29,9 @@ export default class SignUpController implements Controller {
         return badRequest(new InvalidParamError('email'))
       }
 
-      this.addAccount.add({ name, email, password })
+      const account = this.addAccount.add({ name, email, password })
+
+      return ok(account)
     } catch (error) {
       return serverError()
     }
