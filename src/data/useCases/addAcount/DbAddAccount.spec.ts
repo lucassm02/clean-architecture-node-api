@@ -61,4 +61,13 @@ describe('DbAddAccount useCases', () => {
     await sut.add(accountData)
     expect(addSpy).toHaveBeenCalledWith({ name: 'Lucas', email: 'lucas@gmail.com', password: 'hash' })
   })
+
+  test('should throw if AddAccountRepository throws', async () => {
+    const { sut, addAccountRepositoryStub } = makeSut()
+    jest.spyOn(addAccountRepositoryStub, 'add')
+      .mockResolvedValueOnce(new Promise((resolve, reject) => reject(new Error())))
+    const accountData = { name: 'Lucas', email: 'lucas@gmail.com', password: '12345678' }
+    const promise = sut.add(accountData)
+    await expect(promise).rejects.toThrow()
+  })
 })
