@@ -4,8 +4,10 @@ describe('Account Mongo repository', () => {
   beforeAll(async () => await mongoHelper.connect(process.env.MONGO_URL))
   afterAll(async () => await mongoHelper.disconnect())
 
+  const makeSut = (): AccountMongoRepository => new AccountMongoRepository()
+
   test('should return an account on success', async () => {
-    const sut = new AccountMongoRepository()
+    const sut = makeSut()
     const account = await sut.add({
       name: 'Lucas',
       email: 'lucas@gmail.com',
