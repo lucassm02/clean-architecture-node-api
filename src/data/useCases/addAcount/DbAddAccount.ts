@@ -7,7 +7,7 @@ export default class DbAddAccount implements AddAccount {
   constructor (private readonly encrypter: Encrypter, private readonly addAccountRepository: AddAccountRepository) {}
   public async add (account: AddAccountModel): Promise<Omit<AccountModel, 'password'>> {
     const hashedPassword = await this.encrypter.encrypt(account.password)
-    const createdAccountData = await this.addAccountRepository.add({ ...account, password: hashedPassword })
-    return new Promise(resolve => resolve(createdAccountData))
+    const accountDataCreated = await this.addAccountRepository.add({ ...account, password: hashedPassword })
+    return accountDataCreated
   }
 }
