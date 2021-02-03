@@ -70,4 +70,12 @@ describe('DbAddAccount useCases', () => {
     const promise = sut.add(accountData)
     await expect(promise).rejects.toThrow()
   })
+
+  test('should return an account on success', async () => {
+    const { sut } = makeSut()
+    jest.spyOn(sut, 'add')
+    const accountData = { name: 'Lucas', email: 'lucas@gmail.com', password: '12345678' }
+    const account = await sut.add(accountData)
+    expect(account).toEqual({ id: 'valid_id', name: 'Lucas', email: 'lucas@gmail.com' })
+  })
 })
