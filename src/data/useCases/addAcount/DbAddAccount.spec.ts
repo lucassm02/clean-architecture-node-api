@@ -1,9 +1,13 @@
+import { AccountModel } from '../../../domain/models/Account'
+import { AddAccountModel } from '../../../domain/useCases/AddAccount'
 import DbAddAccount from './DbAddAccount'
-import { Encrypter } from './protocols/Encrypter'
+import { Encrypter } from '../../protocols/Encrypter'
+import { AddAccountRepository } from '../../protocols/AddAccountRepository'
 
 interface SutTypes {
   sut: DbAddAccount
   encrypterStub: Encrypter
+  addAccountRepositoryStub: AddAccountRepository
 }
 
 const makeEncrypter = (): Encrypter => {
@@ -15,10 +19,21 @@ const makeEncrypter = (): Encrypter => {
   return new EncrypterStub()
 }
 
+const makeAddAccountRepository = (): AddAccountRepository => {
+  class AddAccountRepositoryStub implements AddAccountRepository {
+    public async add (account: AddAccountModel): Promise<Omit<AccountModel, 'password'>> {
+      const fakeAccount = { id: 'valid_id', name: 'Lucas', email: 'lucas@gmail.com' }
+      return new Promise(resolve => resolve(fakeAccount))
+    }
+  }
+  return new AddAccountRepositoryStub()
+}
+
 const makeSut = (): SutTypes => {
   const encrypterStub = makeEncrypter()
-  const sut = new DbAddAccount(encrypterStub)
-  return { sut, encrypterStub }
+  const addAccountRepositoryStub = makeAddAccountRepository()
+  const sut = new DbAddAccount(encrypterStub, addAccountRepositoryStub)
+  return { sut, encrypterStub, addAccountRepositoryStub }
 }
 
 describe('DbAddAccount useCases', () => {
@@ -37,5 +52,13 @@ describe('DbAddAccount useCases', () => {
     const accountData = { name: 'Lucas', email: 'lucas@gmail.com', password: '12345678' }
     const promise = sut.add(accountData)
     await expect(promise).rejects.toThrow()
+  })
+
+  test('should call AddAccountRepository with correct values', async () => {
+    const { sut, addAccountRepositoryStub } = makeSut()
+    const addSpy = jest.spyOn(addAccountRepositoryStub, 'add')
+    const accountData = { name: 'Lucas', email: 'lucas@gmail.com', password: '12345678' }
+    await sut.add(accountData)
+    expect(addSpy).toHaveBeenCalledWith({ name: 'Lucas', email: 'lucas@gmail.com', password: 'hash' })
   })
 })
