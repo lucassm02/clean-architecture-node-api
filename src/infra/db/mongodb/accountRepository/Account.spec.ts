@@ -3,7 +3,7 @@ import { AccountMongoRepository } from './Account'
 describe('Account Mongo repository', () => {
   beforeAll(async () => await mongoHelper.connect(process.env.MONGO_URL))
   afterAll(async () => await mongoHelper.disconnect())
-  beforeAll(async () => await mongoHelper.getCollection('accounts').deleteMany({}))
+  beforeAll(async () => (await mongoHelper.getCollection('accounts')).deleteMany({}))
 
   const makeSut = (): AccountMongoRepository => new AccountMongoRepository()
 
